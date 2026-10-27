@@ -2,9 +2,9 @@
 
 ## Репозитории (роли не путать)
 
-- `origin` = **`i3667563-dot/CapeCraft`** — приватный полигон: разработка,
+- `origin` = **`ggshnikk-sudo/CapeCraft`** — полигон: разработка,
   тесты, CI-прогоны. Релизам здесь не место.
-- `releases` remote = **`i3667563-dot/CapeCraft-Releases`** — публичный
+- `releases` remote = **`ggshnikk-sudo/CapeCraft-Releases`** — публичный
   релизный репозиторий (полная копия проекта со своим ci.yml). Релизы
   мода (`v*`) и LSP (`lsp-v*`) создаются ТАМ, его ci.yml собирает jar и
   публикует GitHub-релиз на самом CapeCraft-Releases.

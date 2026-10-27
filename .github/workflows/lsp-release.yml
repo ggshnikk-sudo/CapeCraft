@@ -10,11 +10,11 @@ permissions:
 
 jobs:
   # Релиз живёт ТОЛЬКО на CapeCraft-Releases (remote `releases`, публичный
-  # релизный репозиторий). origin — приватный полигон, туда теги lsp-v*
+  # релизный репозиторий). origin — полигон, туда теги lsp-v*
   # не пушатся, а если кто-то пушит — workflow молча пропускается,
   # чтобы не создать релиз не там.
   release:
-    if: github.repository == 'i3667563-dot/CapeCraft-Releases'
+    if: github.repository == 'ggshnikk-sudo/CapeCraft-Releases'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

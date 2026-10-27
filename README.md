@@ -25,7 +25,7 @@
 ## Установка
 
 1. Установи [Fabric Loader](https://fabricmc.net/) для своей версии Minecraft
-2. Скопируй `capecraft-1.3.0-<версия>.jar` из [Releases](https://github.com/ggshnikk-sudo/CapeCraft-Releases/releases) в папку `mods/`, где `<версия>` — твоя версия Minecraft из списка выше
+2. Скопируй `capecraft-1.3.0-<версия>.jar` из [Releases](https://github.com/ggshnikk-sudo/CapeCraft/releases) в папку `mods/`, где `<версия>` — твоя версия Minecraft из списка выше
 3. Запусти игру — мод загрузится автоматически
 
 **Требования:** Fabric API, Fabric Language Kotlin (оба входят в стандартные сборки Fabric).

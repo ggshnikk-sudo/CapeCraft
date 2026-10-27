@@ -9,12 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  # Релиз живёт ТОЛЬКО на CapeCraft-Releases (remote `releases`, публичный
-  # релизный репозиторий). origin — полигон, туда теги lsp-v*
-  # не пушатся, а если кто-то пушит — workflow молча пропускается,
-  # чтобы не создать релиз не там.
+  # Релизы мода и LSP живут в одном репозитории ggshnikk-sudo/CapeCraft.
+  # Guard оставлен, чтобы тег, случайно запушенный в форк, не создал релиз
+  # не там: workflow молча пропускается.
   release:
-    if: github.repository == 'ggshnikk-sudo/CapeCraft-Releases'
+    if: github.repository == 'ggshnikk-sudo/CapeCraft'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

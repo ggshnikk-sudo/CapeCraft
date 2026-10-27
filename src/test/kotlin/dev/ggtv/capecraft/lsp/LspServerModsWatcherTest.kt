@@ -40,7 +40,10 @@ class LspServerModsWatcherTest {
     private var clientToServer: OutputStream? = null
     private var serverThread: Thread? = null
 
-    private val uri: String get() = "file://$config"
+    // Тот же формат, что присылает Zed: `file:///C:/...` с percent-кодированием.
+    // `"file://$config"` на Windows давал `file://C:\...` — uri, которого
+    // редактор не шлёт, и регрессия с ненайденными аддонами проходила мимо тестов.
+    private val uri: String get() = config.toUri().toString()
 
     private val configText = """
         capeCraft {

@@ -12,6 +12,7 @@ import dev.ggtv.capecraft.schema.ConfigSchema
 import dev.ggtv.capecraft.schema.J
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
@@ -386,12 +387,19 @@ class LspServer(
             val mods = AddonSchemaFinder.findModsDir(path)
             if (mods != null) ModsWatcher.watchFor(path)
             val schemas = AddonSchemaFinder.forConfig(path)
-            // Список отдаётся тем же экземпляром, пока подпись не изменилась,
-            // поэтому сравнение по ссылке — точная проверка «ничего не было».
-            if (schemas === appliedAddons && appliedVocabularyKnown == (mods != null)) return false
+            // Сравниваем по значению, а не по ссылке: после сброса кэша
+            // (`ModsWatcher`) перечитывание отдаёт новый экземпляр списка с тем
+            // же содержимым. Windows при копировании jar'а присылает вторую
+            // волну событий уже после того, как файл дочитан, и сравнение по
+            // ссылке превращало её в повторную публикацию тех же диагностик.
+            // Данные аддонов — data-классы, поэтому «то же содержимое» тут
+            // значит буквально то же; изменение дескриптора или переименование
+            // jar'а в `origin` даёт другое значение.
+            val known = mods != null
+            if (schemas == appliedAddons && appliedVocabularyKnown == known) return false
             appliedAddons = schemas
-            appliedVocabularyKnown = mods != null
-            ConfigSchema.setAddonSchemas(schemas, known = mods != null)
+            appliedVocabularyKnown = known
+            ConfigSchema.setAddonSchemas(schemas, known = known)
             if (schemas.isNotEmpty()) {
                 log("аддоны для ${uri.substringAfterLast('/')}: ${schemas.joinToString(", ") { it.id }}")
             }
@@ -415,21 +423,13 @@ class LspServer(
         }
     }
 
-    /** Путь файла из uri вида `file:///...`, иначе `null`. */
-    private fun pathOf(uri: String): Path? {
-        if (!uri.startsWith("file://")) return null
-        val raw = uri.removePrefix("file://")
-        val decoded = try {
-            URLDecoder.decode(raw, StandardCharsets.UTF_8)
-        } catch (e: Exception) {
-            raw
-        }
-        return try {
-            Path.of(decoded)
-        } catch (e: Exception) {
-            null
-        }
-    }
+    /**
+     * Путь файла из uri вида `file:///...`, иначе `null`.
+     *
+     * Разбор вынесен в [fileUriToPath]: та же ошибка пути ломает поиск `mods`,
+     * и её проще проверить тестом на настоящем uri, чем через сервер.
+     */
+    private fun pathOf(uri: String): Path? = fileUriToPath(uri)
 
     private fun onDidChange(message: J.JObj) {
         val td = field(message, "params") as? J.JObj ?: return
@@ -790,8 +790,48 @@ class LspServer(
          * своя линия релизов (`lsp_version` в gradle.properties, теги `lsp-v*`),
          * и поднятие версии мода не должно выглядеть как обновление редактора.
          */
-        const val version = "1.1.5"
+        const val version = "1.1.6"
     }
 }
 
 private operator fun J.JObj.get(key: String): J? = fields.firstOrNull { it.first == key }?.second
+
+/**
+ * Путь файла из uri вида `file:///...`, иначе `null`.
+ *
+ * Разбираем через [URI], а не отрезая `file://` строкой: Zed (как и VS Code)
+ * присылает `file:///C:/...`, а `Path.of("/C:/...")` на Windows бросает
+ * `InvalidPathException`. Исключение тут глотается — путь нужен только для
+ * поиска `mods` рядом с конфигом, — и аддоны молча перестают находиться: их
+ * `when`-корни и типы выглядят неизвестными. [URI] сам приводит и
+ * трёхслэшевый путь, и percent-кодирование (`%20`, кириллица).
+ *
+ * Запасной разбор остаётся для uri не по RFC — например `file://C:\...`,
+ * который может прислать самописный клиент.
+ */
+internal fun fileUriToPath(uri: String): Path? {
+    if (!uri.startsWith("file:")) return null
+    try {
+        return Path.of(URI(uri))
+    } catch (e: Exception) {
+        // Ниже — терпимый разбор.
+    }
+    val raw = uri.removePrefix("file://")
+    var decoded = try {
+        // `+` в пути — это плюс, а не пробел: так его понимает `URLDecoder`,
+        // который разбирает форму, а не путь.
+        URLDecoder.decode(raw.replace("+", "%2B"), StandardCharsets.UTF_8)
+    } catch (e: Exception) {
+        raw
+    }
+    // `file:///C:/...` после отрезания схемы даёт `/C:/...`: слеш перед буквой
+    // диска на Windows — не часть пути.
+    if (decoded.length > 2 && decoded[0] == '/' && decoded[2] == ':' && decoded[1].isLetter()) {
+        decoded = decoded.substring(1)
+    }
+    return try {
+        Path.of(decoded)
+    } catch (e: Exception) {
+        null
+    }
+}

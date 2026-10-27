@@ -16,7 +16,7 @@ PNG • Stacked PNG • APNG • GIF • WebP (lossless)
 
 `config/capecraft.kn` — создаётся автоматически при первом запуске.
 Полный список ключей и разбор настроек — в
-[README](https://github.com/i3667563-dot/CapeCraft-Releases/blob/main/README.md).
+[README](https://github.com/ggshnikk-sudo/CapeCraft/blob/main/README.md).
 
 ### Что нового
 

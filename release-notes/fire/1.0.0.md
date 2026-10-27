@@ -8,7 +8,7 @@
 
 ## Установка
 
-1. [CapeCraft 1.3.0](https://github.com/i3667563-dot/CapeCraft-Releases/releases/tag/v1.3.0)
+1. [CapeCraft 1.3.1](https://github.com/ggshnikk-sudo/CapeCraft/releases/tag/v1.3.1)
    или новее — в нём `API version 2` и реестр `api.whenConditions`.
 2. Этот jar в ту же папку `mods`.
 

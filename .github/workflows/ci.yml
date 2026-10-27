@@ -54,6 +54,36 @@ jobs:
           path: artifacts/capecraft-*-*.jar
           retention-days: 14
 
+  # LSP-сервер — отдельный артефакт со своей версией и своими тестами. Собирался
+  # он только в lsp-release.yml по тегу, то есть поломка сервера всплывала уже
+  # на публичном релизном репозитории. Здесь он проверяется на каждый push/PR.
+  lsp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # Та же Java, что в lsp-release.yml: CI обязан повторять релизную
+          # сборку, иначе зелёный прогон ничего не говорит о релизе.
+          java-version: 26
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test LSP server
+        run: ./gradlew test --tests 'dev.ggtv.capecraft.lsp.*'
+
+      - name: Build LSP jar
+        run: ./gradlew lspJar
+
+      - name: Upload LSP jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: capecraft-lsp
+          path: artifacts/capecraft-lsp.jar
+          retention-days: 14
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build

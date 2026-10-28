@@ -759,6 +759,11 @@ object ConfigSchema {
                 doc = "Синхронизация набора с сервером.",
                 children = serverSync(),
             ),
+            Field(
+                name = "addons",
+                type = SchemaType.BLOCK,
+                doc = "Конфиг аддонов. Ключ — идентификатор аддона, как в fabric.mod.json.",
+            ),
         ),
     )
 

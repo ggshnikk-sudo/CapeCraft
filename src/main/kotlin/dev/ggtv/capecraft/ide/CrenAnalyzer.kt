@@ -369,11 +369,12 @@ object CrenAnalyzer {
             return out
         }
 
-        // `capeCraft` — само имя корня схемы, а не ключ внутри него. Проверять
-        // его как содержимое нельзя: у него нет родителя в схеме, и он всегда
-        // был бы «неизвестным». Ошибку в самом корне ловим отдельно — на
-        // его содержимом.
         if (loc.container.kind == ContainerKind.ROOT && key == ConfigSchema.ROOT) {
+            return out
+        }
+        // `capeCraft.addons` и вложенные секции аддонов: имена блоков —
+        // идентификаторы аддонов, схема их не перечисляет статически.
+        if (loc.container.kind == ContainerKind.BLOCK && loc.path.size >= 3 && loc.path[0] == ConfigSchema.ROOT && loc.path[1] == "addons") {
             return out
         }
 
@@ -395,6 +396,12 @@ object CrenAnalyzer {
             // про неё уже сказано на `type`; второй ошибкой она не станет
             // понятнее. То же молчание, что и в [checkApplies].
             if (ConfigSchema.isProviderItem(parent) && typeNotResolvableHere(loc.siblings)) {
+                return out
+            }
+            // `capeCraft.addons` — произвольные id аддонов, описанных в рантайме
+            // (`CapeAddonConfig`). Схема их не знает статически, поэтому
+            // неизвестные ключи здесь не ошибка.
+            if (parent?.name == "addons" && loc.path.size == 3 && loc.path[0] == ConfigSchema.ROOT) {
                 return out
             }
             out += unknownKey(e, known)
